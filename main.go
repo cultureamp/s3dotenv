@@ -1,8 +1,6 @@
 package main
 
 import (
-	"io"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -82,19 +80,6 @@ func appendFromS3(env []string, s3url string) ([]string, error) {
 }
 
 func readEnvFromS3(u *url.URL) (map[string]string, error) {
-	tmpfile, err := ioutil.TempFile("", "s3dotenv")
-	if err != nil {
-		return nil, errors.Wrap(err, "create temp file")
-	}
-	defer os.Remove(tmpfile.Name())
-	err = downloadFromS3(tmpfile, u)
-	if err != nil {
-		return nil, errors.Wrap(err, "download from S3")
-	}
-	return godotenv.Read(tmpfile.Name())
-}
-
-func downloadFromS3(file *os.File, u *url.URL) error {
 	bucket := u.Host
 	key := u.Path[1:len(u.Path)]
 	sess := session.Must(session.NewSession())
@@ -104,16 +89,8 @@ func downloadFromS3(file *os.File, u *url.URL) error {
 		Key:    aws.String(key),
 	})
 	if err != nil {
-		return errors.Wrap(err, "S3 GetObject")
+		return nil, errors.Wrap(err, "S3 GetObject")
 	}
-	io.Copy(file, s3response.Body)
-	err = file.Close()
-	if err != nil {
-		return errors.Wrap(err, "close file")
-	}
-	err = s3response.Body.Close()
-	if err != nil {
-		return errors.Wrap(err, "close S3 response")
-	}
-	return nil
+	defer s3response.Body.Close()
+	return godotenv.Parse(s3response.Body)
 }

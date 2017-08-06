@@ -27,7 +27,8 @@
 
 [[constraint]]
   name = "github.com/joho/godotenv"
-  version = "1.1.0"
+  # https://github.com/joho/godotenv/pull/36
+  revision = "9d9ddadf44b4c17c42bafdc530ddeee1927c067d"
 
 [[constraint]]
   name = "github.com/pkg/errors"
