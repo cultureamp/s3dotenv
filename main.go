@@ -97,7 +97,8 @@ func readEnvFromS3(u *url.URL) (map[string]string, error) {
 func downloadFromS3(file *os.File, u *url.URL) error {
 	bucket := u.Host
 	key := u.Path[1:len(u.Path)]
-	sess := session.Must(session.NewSession())
+	region := u.Query().Get("region")
+	sess := session.Must(session.NewSession(&aws.Config{Region: &region}))
 	svc := s3.New(sess)
 	s3response, err := svc.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
