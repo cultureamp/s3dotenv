@@ -3,25 +3,20 @@ s3dotenv
 
 `s3dotenv` wraps a program with extra environment variables that it downloads from an S3 object specified by the `S3DOTENV` environment variable. This makes it a useful container `ENTRYPOINT` for environments like [Amazon ECS][ecs] where support for configuration is quite poor. If `S3DOTENV` isn't set, `s3dotenv` gets out of the way, just executing the program.
 
-Some global configuration:
-
-```sh
-export AWS_REGION="us-west-2"
-export S3DOTENV="s3://your-bucket/path/to/file.env"
-```
-
 Create a env file in S3 (you'll need to create the bucket, permissions etc first):
 
 ```sh
-echo "EXAMPLE_FOO=remote" | aws s3 cp --sse=aws:kms - "$S3DOTENV"
+echo "EXAMPLE_FOO=remote" | aws --region=us-west-2 s3 cp --sse=aws:kms - s3://your-bucket/path/to/file.env
 ```
 
 Run a program (in this case `/usr/bin/env`) with the additional environment:
 
 ```sh
-EXAMPLE_BAR=local s3dotenv env | grep EXAMPLE
+export EXAMPLE_BAR=local
+export S3DOTENV="s3://your-bucket/path/to/file.env?region=us-west-2"
+s3dotenv env | grep EXAMPLE
 
-# 2017/08/02 17:43:12 loading env from s3://your-bucket/path/to/file.env
+# 2017/08/02 17:43:12 loading env from s3://your-bucket/path/to/file.env?region=us-west-2
 # EXAMPLE_BAR=local
 # EXAMPLE_FOO=remote
 ```

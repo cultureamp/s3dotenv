@@ -82,7 +82,8 @@ func appendFromS3(env []string, s3url string) ([]string, error) {
 func readEnvFromS3(u *url.URL) (map[string]string, error) {
 	bucket := u.Host
 	key := u.Path[1:len(u.Path)]
-	sess := session.Must(session.NewSession())
+	region := u.Query().Get("region")
+	sess := session.Must(session.NewSession(&aws.Config{Region: &region}))
 	svc := s3.New(sess)
 	s3response, err := svc.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
